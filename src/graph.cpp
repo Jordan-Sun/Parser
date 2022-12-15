@@ -12,6 +12,8 @@ using namespace std;
 
 bool graph::add_node(shared_ptr<node> node)
 {
+    // apply ladder flag
+    node->ladder_flag = ladder_flag;
     // check if node already exists
     if (nodes.find(node->get_identifier()) != nodes.end())
     {

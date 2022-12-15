@@ -81,6 +81,8 @@ size_t component::get_thread_count() const
         requestor->get_threads(threads, fixed_threads_pool, require_nested_thread);
     }
 
+    print_threads(cout, threads, fixed_threads_pool, require_nested_thread);
+
     size_t count = threads.size();
     for (auto fixed_threads : fixed_threads_pool)
     {
@@ -137,6 +139,6 @@ void component::print(ostream &os) const
     {
         os << "\t\t" << requestor->get_identifier() << endl;
     }
-    os << "\tpriority: " << get_priority() << endl;
+    os << "\tpriority: " << get_priority() + (get_type() == type_t::task ? 0 : ladder_flag) << endl;
     os << "\tnumber of threads: " << get_thread_count() << endl;
 }

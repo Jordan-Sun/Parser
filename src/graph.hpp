@@ -15,6 +15,9 @@ private:
     // maps node identifiers to nodes, "node.port" for connections
     std::map<std::string, std::shared_ptr<node>> nodes;
 public:
+    // ladder flag
+    bool ladder_flag = false;
+    
     graph() = default;
     ~graph() = default;
 

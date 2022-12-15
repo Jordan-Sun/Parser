@@ -80,8 +80,9 @@ size_t connection::get_thread_count() const
         // propagate the sum of all requestors.
         for (auto requestor : requestors)
         {
-            get_threads(threads, fixed_threads_pool, require_nested_thread);
+            requestor->get_threads(threads, fixed_threads_pool, require_nested_thread);
         }
+        print_threads(cout, threads, fixed_threads_pool, require_nested_thread);
         count = threads.size();
         for (auto fixed_threads : fixed_threads_pool)
         {
@@ -159,6 +160,6 @@ void connection::print(ostream &os) const
     {
         os << "\t\t" << requestor->get_identifier() << endl;
     }
-    os << "\tpriority: " << get_priority() << endl;
+    os << "\tpriority: " << get_priority() + ladder_flag << endl;
     os << "\tnumber of threads: " << get_thread_count() << endl;
 }

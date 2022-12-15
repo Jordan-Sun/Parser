@@ -7,12 +7,12 @@
 #include "component.hpp"
 #include "connection.hpp"
 #include "graph.hpp"
-#include <getopt.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <regex>
 #include <list>
+#include <getopt.h>
 
 using namespace std;
 
@@ -24,13 +24,14 @@ enum return_codes
     FAILED_TO_OPEN_FILE
 };
 // array of long options
-static struct option long_options[] =
+int ladder_flag = false;
+struct option long_options[] =
     {
         {"input", required_argument, 0, 'i'},
         {"output", required_argument, 0, 'o'},
         {"log", required_argument, 0, 'l'},
-        {0, 0, 0, 0}
-    };
+        {"ladder", no_argument, &ladder_flag, true},
+        {0, 0, 0, 0}};
 
 int main(int argc, char* argv[])
 {
@@ -68,6 +69,9 @@ int main(int argc, char* argv[])
             break;
         }
     }
+
+    // set the ladder flag
+    g.ladder_flag = ladder_flag;
 
     // check if the input file was specified
     if (input_file_name == "")
@@ -135,15 +139,15 @@ int main(int argc, char* argv[])
     /*
         Phase 2: Parse the connections through double regex.
         For each
-            connection [Rpc/Timer] [Connection]([Unparsed]);
-                        ^- ignored         ^- name
+            connection rpc([Threads]) [Connection]([Unparsed]);
+                            ^- ignored      ^- name
         Split unparsed by comma, and for each
             from/to [Component].[Port]
                         ^- name     ^- port
         in the input file, create a connection object and add it to the graph.
         Then add an edge between each pair of source and destination component to the connection.
      */
-    regex connection_regex("connection ([^ ]+) (\\w+)\\(([^)]+)\\);");
+    regex connection_regex("connection rpc([^ ]+) (\\w+)\\(([^)]+)\\);");
     regex port_regex("(from|to) (\\w+).(\\w+)");
 
     if (log_file.is_open())
