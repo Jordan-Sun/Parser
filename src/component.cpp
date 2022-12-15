@@ -6,6 +6,7 @@
 
 #include "component.hpp"
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -73,16 +74,37 @@ size_t component::get_thread_count() const
     }
     // otherwise, propagate the sum of all requestors.
     set<shared_ptr<const node>> threads;
+    vector<set<shared_ptr<const node>>> fixed_threads_pool;
     bool require_nested_thread = false;
     for (auto requestor : requestors)
     {
-        requestor->get_threads(threads, require_nested_thread);
+        requestor->get_threads(threads, fixed_threads_pool, require_nested_thread);
     }
-    // add 1 if nested thread is required.
-    return threads.size() + (require_nested_thread ? 1 : 0);
+
+    size_t count = threads.size();
+    for (auto fixed_threads : fixed_threads_pool)
+    {
+        // check if fixed threads is a subset of threads.
+        bool is_subset = true;
+        for (auto thread : fixed_threads)
+        {
+            if (threads.find(thread) == threads.end())
+            {
+                is_subset = false;
+                break;
+            }
+        }
+        // if fixed threads is not a subset of threads, increment count by 1.
+        if (!is_subset) count++;
+    }
+
+    // increment count if nested thread is required.
+    if (require_nested_thread) count++;
+
+    return count;
 }
 
-void component::get_threads(std::set<std::shared_ptr<const node>> &threads, bool &require_nested_thread) const
+void component::get_threads(set<shared_ptr<const node>> &threads, vector<set<shared_ptr<const node>>> &fixed_threads_pool, bool &require_nested_thread) const
 {
     size_t num_requestors = requestors.size();
 
@@ -101,7 +123,7 @@ void component::get_threads(std::set<std::shared_ptr<const node>> &threads, bool
         }
         for (auto requestor : requestors)
         {
-            requestor->get_threads(threads, require_nested_thread);
+            requestor->get_threads(threads, fixed_threads_pool,require_nested_thread);
         }
     }
 }

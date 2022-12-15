@@ -6,6 +6,7 @@
 
 #include "connection.hpp"
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -15,7 +16,7 @@ connection::connection(string name, string comp_name, string comp_port)
     this->name = name;
 }
 
-void connection::set_protocol(std::string protocol)
+void connection::set_protocol(string protocol)
 {
     if (protocol == "fixed")
     {
@@ -63,7 +64,9 @@ size_t connection::get_priority() const
 size_t connection::get_thread_count() const
 {
     set<shared_ptr<const node>> threads;
+    vector<set<shared_ptr<const node>>> fixed_threads_pool;
     bool require_nested_thread = false;
+    size_t count;
 
     switch (protocol)
     {
@@ -77,40 +80,72 @@ size_t connection::get_thread_count() const
         // propagate the sum of all requestors.
         for (auto requestor : requestors)
         {
-            get_threads(threads, require_nested_thread);
+            get_threads(threads, fixed_threads_pool, require_nested_thread);
         }
-        // add 1 if nested thread is required.
-        return threads.size() + (require_nested_thread ? 1 : 0);
+        count = threads.size();
+        for (auto fixed_threads : fixed_threads_pool)
+        {
+            // check if fixed threads is a subset of threads.
+            bool is_subset = true;
+            for (auto thread : fixed_threads)
+            {
+                if (threads.find(thread) == threads.end())
+                {
+                    is_subset = false;
+                    break;
+                }
+            }
+            // if fixed threads is not a subset of threads, increment count by 1.
+            if (!is_subset)
+                count++;
+        }
+
+        // increment count if nested thread is required.
+        if (require_nested_thread)
+            count++;
+        
+        return count;
     default:
-        cerr << "Error:" << name << " has no protocol set." << endl;
-        return -1;
+        cerr << "Error: " << name << " has no protocol set." << endl;
+        return 0;
     }
 }
 
-void connection::get_threads(std::set<std::shared_ptr<const node>> &threads, bool &require_nested_thread) const
+void connection::get_threads(set<shared_ptr<const node>> &threads, vector<set<shared_ptr<const node>>> &fixed_threads_pool, bool &require_nested_thread) const
 {
-    switch (protocol)
+
+    if (protocol == protocol_t::propagation)
     {
-    case protocol_t::ipcp:
-        // only one thread is propagated, does not require nested thread (?)
-        threads.insert(shared_from_this());
-        // require_nested_thread = false;
-        break;
-    case protocol_t::pip:
-        // only one thread is propagated, but require nested thread
-        threads.insert(shared_from_this());
-        require_nested_thread = true;
-        break;
-    case protocol_t::propagation:
         // propagate the sum of all requestors.
         for (auto requestor : requestors)
         {
-            requestor->get_threads(threads, require_nested_thread);
+            requestor->get_threads(threads, fixed_threads_pool, require_nested_thread);
         }
-        break;
-    default:
-        cerr << "Error:" << name << " has no protocol set." << endl;
-        break;
+    }
+    else if (protocol == protocol_t::none)
+    {
+        cerr << "Error: " << name << " has no protocol set." << endl;
+    }
+    else
+    {
+        set<shared_ptr<const node>> nested_threads;
+        vector<set<shared_ptr<const node>>> nested_fixed_threads_pool;
+        bool nested_require_nested_thread;
+        // recursively get threads of requestors.
+        for (auto requestor : requestors)
+        {
+            requestor->get_threads(nested_threads, nested_fixed_threads_pool, nested_require_nested_thread);
+        }
+        // both nested threads and threads in the fixed threads pool are condensed into a single fixed_threads.
+        for (auto nested_fixed_threads : nested_fixed_threads_pool)
+        {
+            nested_threads.insert(nested_fixed_threads.begin(), nested_fixed_threads.end());
+        }
+        fixed_threads_pool.push_back(nested_threads);
+        // require nested thread if protocol is pip
+        // do not require nested thread if protocol is ipcp
+        require_nested_thread = (protocol == protocol_t::pip);
+        // nothing is contributed to threads.
     }
 }
 
