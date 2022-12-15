@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
     if (input_file_name == "")
     {
         cerr << "Error: no input file specified." << endl;
-        cout << "Usage: " << argv[0] << " -i <input file> [-o <output file>] [-l <log file>]" << endl;
+        cout << "Usage: " << argv[0] << " -i <input file> [-o <output file>] [-l <log file>] [--ladder]" << endl;
         return INVALID_ARGS;
     }
 
