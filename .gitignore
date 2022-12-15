@@ -12,3 +12,4 @@ DartConfiguration.tcl
 Makefile
 Parser
 out.txt
+test.log
