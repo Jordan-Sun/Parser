@@ -77,8 +77,7 @@ size_t connection::get_thread_count() const
         // propagate the sum of all requestors.
         for (auto requestor : requestors)
         {
-            threads.insert(requestor->get_threads().first.begin(), requestor->get_threads().first.end());
-            require_nested_thread |= requestor->get_threads().second;
+            get_threads(threads, require_nested_thread);
         }
         // add 1 if nested thread is required.
         return threads.size() + (require_nested_thread ? 1 : 0);
@@ -89,11 +88,8 @@ size_t connection::get_thread_count() const
     }
 }
 
-pair<set<shared_ptr<const node>>, bool> connection::get_threads() const
+void connection::get_threads(std::set<std::shared_ptr<const node>> &threads, bool &require_nested_thread) const
 {
-    set<shared_ptr<const node>> threads;
-    bool require_nested_thread = false;
-
     switch (protocol)
     {
     case protocol_t::ipcp:
@@ -110,8 +106,7 @@ pair<set<shared_ptr<const node>>, bool> connection::get_threads() const
         // propagate the sum of all requestors.
         for (auto requestor : requestors)
         {
-            threads.insert(requestor->get_threads().first.begin(), requestor->get_threads().first.end());
-            require_nested_thread |= requestor->get_threads().second;
+            requestor->get_threads(threads, require_nested_thread);
         }
         break;
     default:
@@ -119,8 +114,6 @@ pair<set<shared_ptr<const node>>, bool> connection::get_threads() const
         throw runtime_error("protocol not set");
         break;
     }
-
-    return make_pair(threads, require_nested_thread);
 }
 
 void connection::print(ostream &os) const
@@ -134,5 +127,5 @@ void connection::print(ostream &os) const
         os << "\t\t" << requestor->get_identifier() << endl;
     }
     os << "\tpriority: " << get_priority() << endl;
-    // os << "\tnumber of threads: " << get_thread_count() << endl;
+    os << "\tnumber of threads: " << get_thread_count() << endl;
 }

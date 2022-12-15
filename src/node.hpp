@@ -35,7 +35,7 @@ public:
     std::set<std::shared_ptr<node>> requestors;
 
     virtual ~node() = default;
-    
+
     // Get the name of the node
     virtual std::string get_identifier() const = 0;
     // Get the type of the node
@@ -48,8 +48,8 @@ public:
     // Get the number of threads needed to run this node.
     virtual size_t get_thread_count() const = 0;
     // Get all threads needed to run this node, recursive helper function for get_thread_count.
-    virtual std::pair<std::set<std::shared_ptr<const node>>, bool> get_threads() const = 0;
-    
+    virtual void get_threads(std::set<std::shared_ptr<const node>> &threads, bool &require_nested_thread) const = 0;
+
     // Print the node
     virtual void print(std::ostream &os) const = 0;
 

@@ -76,17 +76,14 @@ size_t component::get_thread_count() const
     bool require_nested_thread = false;
     for (auto requestor : requestors)
     {
-        threads.insert(requestor->get_threads().first.begin(), requestor->get_threads().first.end());
-        require_nested_thread |= requestor->get_threads().second;
+        requestor->get_threads(threads, require_nested_thread);
     }
     // add 1 if nested thread is required.
     return threads.size() + (require_nested_thread ? 1 : 0);
 }
 
-pair<set<shared_ptr<const node>>, bool> component::get_threads() const
+void component::get_threads(std::set<std::shared_ptr<const node>> &threads, bool &require_nested_thread) const
 {
-    set<shared_ptr<const node>> threads;
-    bool require_nested_thread = false;
     size_t num_requestors = requestors.size();
 
     // if requestors is empty, return this thread.
@@ -100,17 +97,13 @@ pair<set<shared_ptr<const node>>, bool> component::get_threads() const
         // issue a warning if there are more than one requestors.
         if (num_requestors > 1)
         {
-            cerr << "Warning: component " << name << " has more than one requestor." << endl;
+            cerr << "Warning: component " << name << " has more than one input port." << endl;
         }
         for (auto requestor : requestors)
         {
-            threads.insert(requestor->get_threads().first.begin(), requestor->get_threads().first.end());
-            // if any requestor requires nested thread, set the flag.
-            require_nested_thread |= require_nested_thread || requestor->get_threads().second;
+            requestor->get_threads(threads, require_nested_thread);
         }
     }
-
-    return make_pair(threads, require_nested_thread);
 }
 
 void component::print(ostream &os) const
@@ -123,5 +116,5 @@ void component::print(ostream &os) const
         os << "\t\t" << requestor->get_identifier() << endl;
     }
     os << "\tpriority: " << get_priority() << endl;
-    // os << "\tnumber of threads: " << get_thread_count() << endl;
+    os << "\tnumber of threads: " << get_thread_count() << endl;
 }

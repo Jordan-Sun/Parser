@@ -31,7 +31,7 @@ public:
 
     virtual size_t get_thread_count() const override;
 
-    virtual std::pair<std::set<std::shared_ptr<const node>>, bool> get_threads() const override;
+    virtual void get_threads(std::set<std::shared_ptr<const node>> &threads, bool &require_nested_thread) const override;
 
     virtual void print(std::ostream &os) const override;
 };
