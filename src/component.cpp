@@ -55,7 +55,7 @@ size_t component::get_priority() const
     // issue a warning if there are more than one requestors.
     if (num_requestors > 1)
     {
-        cerr << "Warning: component " << name << " has more than one requestor." << endl;
+        cerr << "Warning: component " << name << " has more than one input port." << endl;
     }
     for (auto requestor : requestors)
     {

@@ -90,6 +90,11 @@ int main(int argc, char* argv[])
     }
 
     /*
+        Phase 0: Expand the input file in place.   
+     */
+    // todo: implement this
+
+    /*
         Phase 1: Parse the components through simple regex.
         For each
             component [ComponentType] [Component];
@@ -341,6 +346,11 @@ int main(int argc, char* argv[])
 
     // print the graph
     g.print(cout);
+
+    /*
+        Phase 5: Output replaced configuration to output file.
+     */
+    // todo: implement this
 
     return SUCCESS;
 }

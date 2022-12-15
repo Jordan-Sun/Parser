@@ -82,9 +82,8 @@ size_t connection::get_thread_count() const
         // add 1 if nested thread is required.
         return threads.size() + (require_nested_thread ? 1 : 0);
     default:
-        // throw an error if protocol is not set
-        throw runtime_error("protocol not set");
-        break;
+        cerr << "Error:" << name << " has no protocol set." << endl;
+        return -1;
     }
 }
 
@@ -110,8 +109,7 @@ void connection::get_threads(std::set<std::shared_ptr<const node>> &threads, boo
         }
         break;
     default:
-        // throw an error if protocol is not set
-        throw runtime_error("protocol not set");
+        cerr << "Error:" << name << " has no protocol set." << endl;
         break;
     }
 }
