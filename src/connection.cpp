@@ -56,21 +56,6 @@ protocol_t connection::get_protocol() const
     return protocol;
 }
 
-string connection::get_identifier() const
-{
-    return name;
-}
-
-type_t connection::get_type() const
-{
-    return type_t::connection;
-}
-
-protocol_t connection::get_protocol() const
-{
-    return protocol;
-}
-
 size_t connection::get_priority() const
 {
     size_t max_priority = 0;

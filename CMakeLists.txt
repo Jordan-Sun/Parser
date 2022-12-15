@@ -4,6 +4,8 @@ project(Parser VERSION 0.1.0)
 include(CTest)
 enable_testing()
 
+set(CMAKE_CXX_STANDARD 11)
+
 add_executable(Parser src/main.cpp src/component.cpp src/connection.cpp src/graph.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

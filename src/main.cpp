@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
                         // create a connection node
                         shared_ptr<node> conn = make_shared<connection>(name, component_name, port_name);
                         // add the connection node to the graph
-                        g.add_node(make_shared<connection>(name));
+                        g.add_node(conn);
                         // push the connection node's name to the conn_nodes list
                         conn_nodes.push_back(conn->get_identifier());
                         // add an edge from the connection to the component

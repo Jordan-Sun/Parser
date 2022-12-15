@@ -25,5 +25,5 @@ public:
     // get a node from the graph
     std::shared_ptr<node> get_node(std::string identifier);
     // print the graph
-    void print(ostream &os) const;
+    void print(std::ostream &os) const;
 };

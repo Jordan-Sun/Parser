@@ -56,7 +56,7 @@ public:
     virtual std::pair<std::set<std::shared_ptr<const node>>, bool> get_threads() const = 0;
     
     // Print the node
-    virtual void print(ostream &os) const = 0;
+    virtual void print(std::ostream &os) const = 0;
 
     // Add a requestor to this node.
     void add_requestor(std::shared_ptr<node> requestor)

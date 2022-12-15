@@ -35,5 +35,5 @@ public:
 
     virtual std::pair<std::set<std::shared_ptr<const node>>, bool> get_threads() const override;
 
-    virtual void print(ostream &os) const override;
+    virtual void print(std::ostream &os) const override;
 };
