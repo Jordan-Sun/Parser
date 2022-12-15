@@ -15,12 +15,6 @@ connection::connection(string name, string comp_name, string comp_port)
     this->name = name;
 }
 
-void connection::set_priority(size_t priority)
-{
-    // connection does not have priority
-    throw runtime_error("connection does not have priority");
-}
-
 void connection::set_protocol(std::string protocol)
 {
     if (protocol == "fixed")
@@ -140,5 +134,5 @@ void connection::print(ostream &os) const
         os << "\t\t" << requestor->get_identifier() << endl;
     }
     os << "\tpriority: " << get_priority() << endl;
-    os << "\tnumber of threads: " << get_thread_count() << endl;
+    // os << "\tnumber of threads: " << get_thread_count() << endl;
 }

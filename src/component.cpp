@@ -19,15 +19,9 @@ void component::set_priority(size_t priority)
     this->priority = priority;
 }
 
-void component::set_protocol(std::string protocol)
-{
-    // component does not have protocol
-    throw runtime_error("component does not have protocol");
-}
-
 string component::get_identifier() const
 {
-    return name + ".";
+    return name;
 }
 
 type_t component::get_type() const
@@ -129,5 +123,5 @@ void component::print(ostream &os) const
         os << "\t\t" << requestor->get_identifier() << endl;
     }
     os << "\tpriority: " << get_priority() << endl;
-    os << "\tnumber of threads: " << get_thread_count() << endl;
+    // os << "\tnumber of threads: " << get_thread_count() << endl;
 }

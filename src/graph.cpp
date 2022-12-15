@@ -70,7 +70,7 @@ bool graph::add_edge(string src_name, string dest_name)
     }
 
     // add edge to graph
-    nodes[src_name]->add_requestor(nodes[dest_name]);
+    nodes[dest_name]->add_requestor(nodes[src_name]);
     return true;
 }
 

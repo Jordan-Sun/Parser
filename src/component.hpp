@@ -19,9 +19,7 @@ public:
 
     virtual ~component() = default;
 
-    virtual void set_priority(size_t priority) override;
-
-    virtual void set_protocol(std::string protocol) override;
+    void set_priority(size_t priority);
 
     virtual std::string get_identifier() const override;
 

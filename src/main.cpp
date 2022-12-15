@@ -28,6 +28,7 @@ static struct option long_options[] =
     {
         {"input", required_argument, 0, 'i'},
         {"output", required_argument, 0, 'o'},
+        {"log", required_argument, 0, 'l'},
         {0, 0, 0, 0}
     };
 
@@ -43,10 +44,11 @@ int main(int argc, char* argv[])
     // parse the command line arguments
     string input_file_name = "";
     string output_file_name = "";
+    string log_file_name = "";
     while (true)
     {
         int option_index = 0;
-        int c = getopt_long(argc, argv, "i:o:", long_options, &option_index);
+        int c = getopt_long(argc, argv, "i:o:l:", long_options, &option_index);
 
         if (c == -1)
             break;
@@ -59,7 +61,9 @@ int main(int argc, char* argv[])
         case 'o':
             output_file_name = optarg;
             break;
-
+        case 'l':
+            log_file_name = optarg;
+            break;
         default:
             break;
         }
@@ -69,8 +73,20 @@ int main(int argc, char* argv[])
     if (input_file_name == "")
     {
         cerr << "Error: no input file specified." << endl;
-        cout << "Usage: " << argv[0] << " -i <input file> [-o <output file>]" << endl;
+        cout << "Usage: " << argv[0] << " -i <input file> [-o <output file>] [-l <log file>]" << endl;
         return INVALID_ARGS;
+    }
+
+    // open the log file if specified
+    ofstream log_file;
+    if (log_file_name != "")
+    {
+        log_file.open(log_file_name);
+        if (!log_file.is_open())
+        {
+            cerr << "Error: failed to open log file " << log_file_name << endl;
+            return FAILED_TO_OPEN_FILE;
+        }
     }
 
     /*
@@ -81,6 +97,11 @@ int main(int argc, char* argv[])
         in the input file, create a component object and add it to the graph.
      */
     regex component_regex("component (\\w+) (\\w+);");
+
+    if (log_file.is_open())
+    {
+        log_file << "Phase 1: Parsing components..." << endl;
+    }
 
     // open the input file
     ifstream input_file(input_file_name);
@@ -99,6 +120,10 @@ int main(int argc, char* argv[])
             // create a component object and add it to the graph
             string name = match[2];
             g.add_node(make_shared<component>(name));
+            if (log_file.is_open())
+            {
+                log_file << "Added component node " << name << endl;
+            }
         }
     }
 
@@ -114,7 +139,12 @@ int main(int argc, char* argv[])
         Then add an edge between each pair of source and destination component to the connection.
      */
     regex connection_regex("connection ([^ ]+) (\\w+)\\(([^)]+)\\);");
-    regex port_regex("(from|to) (\w+).(\w+)");
+    regex port_regex("(from|to) (\\w+).(\\w+)");
+
+    if (log_file.is_open())
+    {
+        log_file << "Phase 2: Parsing connections..." << endl;
+    }
 
     // reset the input file
     input_file.clear();
@@ -128,7 +158,6 @@ int main(int argc, char* argv[])
         {
             // create a connection object and add it to the graph
             string name = match[2];
-
             // parse the unparsed part of the connection
             string unparsed = match[3];
             // split the unparsed part by comma
@@ -151,17 +180,30 @@ int main(int argc, char* argv[])
                     {
                         // push the component's name to the from_nodes list
                         from_nodes.push_back(component_name);
+                        if (log_file.is_open())
+                        {
+                            log_file << "Parsed from node " << component_name << endl;
+                        }
                     }
                     else if (direction == "to")
                     {
                         // create a connection node
                         shared_ptr<node> conn = make_shared<connection>(name, component_name, port_name);
+                        string identifier = conn->get_identifier();
                         // add the connection node to the graph
                         g.add_node(conn);
                         // push the connection node's name to the conn_nodes list
-                        conn_nodes.push_back(conn->get_identifier());
+                        conn_nodes.push_back(identifier);
+                        if (log_file.is_open())
+                        {
+                            log_file << "Added connection " << name << " (" << identifier << ")" << endl;
+                        }
                         // add an edge from the connection to the component
-                        g.add_edge(name, component_name);
+                        g.add_edge(identifier, component_name);
+                        if (log_file.is_open())
+                        {
+                            log_file << "Added edge " << identifier << " -> " << component_name << endl;
+                        }
                     }
                 }
             }
@@ -171,6 +213,10 @@ int main(int argc, char* argv[])
                 for (string conn_node : conn_nodes)
                 {
                     g.add_edge(from_node, conn_node);
+                    if (log_file.is_open())
+                    {
+                        log_file << "Added edge " << from_node << " -> " << conn_node << endl;
+                    }
                 }
             }
         }
@@ -184,6 +230,11 @@ int main(int argc, char* argv[])
         in the input file, set the priority of the component.
      */
     regex priority_regex("(\\w+)\\._priority = (\\d+);");
+
+    if (log_file.is_open())
+    {
+        log_file << "Phase 3: Parsing priorities..." << endl;
+    }
 
     // reset the input file
     input_file.clear();
@@ -202,7 +253,27 @@ int main(int argc, char* argv[])
             priority_stream >> priority;
 
             // set the priority of the component
-            g.get_node(name)->set_priority(priority);
+            shared_ptr<node> node = g.get_node(name);
+            if (node == nullptr)
+            {
+                cerr << "Error: component " << name << " not found." << endl;
+            }
+            else
+            {
+                shared_ptr<component> comp = dynamic_pointer_cast<component>(node);
+                if (comp == nullptr)
+                {
+                    cerr << "Error: node " << name << " is not a component." << endl;
+                }
+                else
+                {
+                    comp->set_priority(priority);
+                    if (log_file.is_open())
+                    {
+                        log_file << "Set priority of " << name << " to " << priority << endl;
+                    }
+                }
+            }
         }
     }
 
@@ -214,6 +285,11 @@ int main(int argc, char* argv[])
         in the input file, set the propagation protocol of the connection.
      */
     regex protocol_regex("(\\w+)\\.(\\w+)_priority_protocol = \"([^\"]+)\";");
+
+    if (log_file.is_open())
+    {
+        log_file << "Phase 4: Parsing protocols..." << endl;
+    }
 
     // reset the input file
     input_file.clear();
@@ -231,12 +307,38 @@ int main(int argc, char* argv[])
             string protocol = match[3];
 
             // set the propagation protocol of the connection
-            g.get_node(name)->set_protocol(protocol);
+            shared_ptr<node> node = g.get_node(name + "." + port);
+            if (node == nullptr)
+            {
+                cerr << "Error: connection " << name << " not found." << endl;
+            }
+            else
+            {
+                shared_ptr<connection> conn = dynamic_pointer_cast<connection>(node);
+                if (conn == nullptr)
+                {
+                    cerr << "Error: node " << name << " is not a connection." << endl;
+                }
+                else
+                {
+                    conn->set_protocol(protocol);
+                    if (log_file.is_open())
+                    {
+                        log_file << "Set protocol of " << name << "." << port << " to " << protocol << endl;
+                    }
+                }
+            }
         }
     }
 
     // close the input file
     input_file.close();
+
+    if (log_file.is_open())
+    {
+        log_file << "Finished parsing. Printing..." << endl;
+    }
+
     // print the graph
     g.print(cout);
 

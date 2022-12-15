@@ -35,12 +35,7 @@ public:
     std::set<std::shared_ptr<node>> requestors;
 
     virtual ~node() = default;
-
-    // Set priority of this node.
-    virtual void set_priority(size_t priority) = 0;
-    // Set protocol of this node.
-    virtual void set_protocol(std::string protocol) = 0;
-
+    
     // Get the name of the node
     virtual std::string get_identifier() const = 0;
     // Get the type of the node
